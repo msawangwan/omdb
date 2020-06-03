@@ -1,0 +1,9 @@
+{
+  "api": {
+    "key": "",
+    "endpoint": {
+      "data": "http://www.omdbapi.com/",
+      "image": "http://img.omdbapi.com/"
+    }
+  }
+}
