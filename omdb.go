@@ -23,12 +23,52 @@ type QueryRequest struct {
 	Plot  string `json:"plot,omitempty"`
 }
 
+func (q QueryRequest) String() string {
+	query := fmt.Sprintf("t=%s", url.QueryEscape(q.Title))
+
+	if q.ID != "" {
+		query = fmt.Sprintf("i=%s", q.ID)
+	}
+
+	if q.Year != "" {
+		query = query + "&y=" + q.Year
+	}
+
+	if q.Plot != "" {
+		query = query + "&plot=full"
+	}
+
+	if q.Type == "movie" || q.Type == "series" || q.Type == "episode" {
+		query = query + "&type=" + q.Type
+	}
+
+	return query
+}
+
 // SearchRequest encapsulates a search request's query parameters.
 type SearchRequest struct {
 	Search string `json:"search,omitempty"`
 	Type   string `json:"type,omitempty"`
 	Year   string `json:"year,omitempty"`
 	Page   string `json:"page,omitempty"`
+}
+
+func (q SearchRequest) String() string {
+	query := fmt.Sprintf("s=%s", url.QueryEscape(q.Search))
+
+	if q.Page != "" {
+		query = query + "&page=full"
+	}
+
+	if q.Year != "" {
+		query = query + "&y=" + q.Year
+	}
+
+	if q.Type == "movie" || q.Type == "series" || q.Type == "episode" {
+		query = query + "&type=" + q.Type
+	}
+
+	return query
 }
 
 // APIClientConfig exposes fields that are mapped to a JSON configuration file.
@@ -83,33 +123,11 @@ func New(config io.Reader, timeoutSeconds int) (*APIClient, error) {
 
 // Query queries an external API for a movie by title.
 func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
-	var (
-		o *QueryResponse = &QueryResponse{}
-	)
-
-	resource := ""
-
-	if q.Title != "" {
-		resource = fmt.Sprintf("%s&t=%s", api.DataEndpoint, url.QueryEscape(q.Title))
-	} else if q.ID != "" {
-		resource = fmt.Sprintf("%s&i=%s", api.DataEndpoint, q.ID)
-	} else {
+	if q.Title == "" && q.ID == "" {
 		return nil, fmt.Errorf("missing required query parameter: need title or id")
 	}
 
-	if q.Year != "" {
-		resource = resource + "&y=" + q.Year
-	}
-
-	if q.Plot != "" {
-		resource = resource + "&plot=full"
-	}
-
-	if q.Type == "movie" || q.Type == "series" || q.Type == "episode" {
-		resource = resource + "&type=" + q.Type
-	}
-
-	req, err := http.NewRequest(http.MethodGet, resource, nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&t=%s", api.DataEndpoint, q.String()), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +141,11 @@ func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	res.Body.Close()
+
+	var (
+		o *QueryResponse = &QueryResponse{}
+	)
 
 	if err := json.Unmarshal(data, o); err != nil {
 		return nil, err
@@ -135,25 +156,8 @@ func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
 
 // Search submits a search for movies match a search string.
 func (api *APIClient) Search(q SearchRequest) (*SearchResponse, error) {
-	var (
-		o *SearchResponse = &SearchResponse{}
-	)
 
-	resource := fmt.Sprintf("%s&s=%s", api.DataEndpoint, url.QueryEscape(q.Search))
-
-	if q.Page != "" {
-		resource = resource + "&page=full"
-	}
-
-	if q.Year != "" {
-		resource = resource + "&y=" + q.Year
-	}
-
-	if q.Type == "movie" || q.Type == "series" || q.Type == "episode" {
-		resource = resource + "&type=" + q.Type
-	}
-
-	req, err := http.NewRequest(http.MethodGet, resource, nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&s=%s", api.DataEndpoint, q.String()), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -167,8 +171,11 @@ func (api *APIClient) Search(q SearchRequest) (*SearchResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	res.Body.Close()
+
+	var (
+		o *SearchResponse = &SearchResponse{}
+	)
 
 	if err := json.Unmarshal(data, o); err != nil {
 		return nil, err
