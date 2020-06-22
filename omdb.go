@@ -127,7 +127,7 @@ func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
 		return nil, fmt.Errorf("missing required query parameter: need title or id")
 	}
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&t=%s", api.DataEndpoint, q.String()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&%s", api.DataEndpoint, q.String()), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
 // Search submits a search for movies match a search string.
 func (api *APIClient) Search(q SearchRequest) (*SearchResponse, error) {
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&s=%s", api.DataEndpoint, q.String()), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&%s", api.DataEndpoint, q.String()), nil)
 	if err != nil {
 		return nil, err
 	}
