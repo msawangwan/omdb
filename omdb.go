@@ -154,9 +154,33 @@ func (api *APIClient) Query(q QueryRequest) (*QueryResponse, error) {
 	return o, nil
 }
 
+// QueryRaw is like Query except defers unmarshal to the caller, returning a byte buffer.
+func (api *APIClient) QueryRaw(q QueryRequest) ([]byte, error) {
+	if q.Title == "" && q.ID == "" {
+		return nil, fmt.Errorf("missing required query parameter: need title or id")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&%s", api.DataEndpoint, q.String()), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+
+	return data, nil
+}
+
 // Search submits a search for movies match a search string.
 func (api *APIClient) Search(q SearchRequest) (*SearchResponse, error) {
-
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&%s", api.DataEndpoint, q.String()), nil)
 	if err != nil {
 		return nil, err
@@ -182,4 +206,25 @@ func (api *APIClient) Search(q SearchRequest) (*SearchResponse, error) {
 	}
 
 	return o, nil
+}
+
+// SearchRaw is like Search except defers unmarshal to the caller, returning a byte buffer.
+func (api *APIClient) SearchRaw(q SearchRequest) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&%s", api.DataEndpoint, q.String()), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := api.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+
+	return data, nil
 }
