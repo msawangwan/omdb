@@ -32,7 +32,7 @@ type QueryResponse struct {
 	Ratings  []struct {
 		Source string `json:"Source,omitempty"`
 		Value  string `json:"Value,omitempty"`
-	} `json:"ratings,omitempty"`
+	} `json:"Ratings,omitempty"`
 	Metascore  string `json:"Metascore,omitempty"`
 	IMDBRating string `json:"imdbRating,omitempty"`
 	IMDBVotes  string `json:"imdbVotes,omitempty"`
