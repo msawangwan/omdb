@@ -71,6 +71,14 @@ func (q SearchRequest) String() string {
 	return query
 }
 
+// APIClientContract provides an interface so that the client can be mocked during testing.
+type APIClientContract interface {
+	Query(q QueryRequest) (*QueryResponse, error)
+	QueryRaw(q QueryRequest) ([]byte, error)
+	Search(q SearchRequest) (*SearchResponse, error)
+	SearchRaw(q SearchRequest) ([]byte, error)
+}
+
 // APIClientConfig exposes fields that are mapped to a JSON configuration file.
 type APIClientConfig struct {
 	API struct {
